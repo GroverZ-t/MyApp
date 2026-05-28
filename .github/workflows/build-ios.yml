@@ -1,4 +1,4 @@
-name: Build MAUI iOS IPA
+name: Build MAUI iOS App Bundle
 
 on: [push]
 
@@ -9,43 +9,38 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 🔧 Устанавливаем .NET (global.json определит точную версию)
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      # 🔧 Выбираем совместимый Xcode
       - name: Select Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode_16.4.app
           echo "Selected Xcode:"
           xcodebuild -version
 
-      # 🔧 Устанавливаем MAUI workload
       - name: Install MAUI workload
         run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
-      # 🔧 Сборка iOS
-      - name: Build iOS
+      - name: Build iOS App Bundle
         run: |
-          # Автоматически находим .csproj файл
           CSPROJ=$(find . -name "*.csproj" -not -path "*/obj/*" -not -path "*/bin/*" | head -n 1)
           echo "Building project: $CSPROJ"
           
-          # Собираем только iOS
+          # 🔧 Собираем .app бандл (без IPA, без подписи)
           dotnet publish "$CSPROJ" \
             -f net8.0-ios \
             -c Release \
-            -p:BuildIpa=true \
+            -p:BuildIpa=false \
             -p:ArchiveOnBuild=false \
             -p:CodesignKey="" \
             -p:CodesignProvision="" \
             -p:TargetFrameworks=net8.0-ios \
             -p:MauiVersion=8.0.100
 
-      # 🔧 Загружаем артефакт
-      - name: Upload IPA
+      - name: Upload App Bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-app
-          path: bin/Release/net8.0-ios/ios-arm64/publish/*.ipa
+          name: ios-app-bundle
+          # 🔧 Путь к .app папке (без подписи)
+          path: bin/Release/net8.0-ios/ios-arm64/publish/MyApp.app
