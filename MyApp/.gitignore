@@ -1,0 +1,21 @@
+# Visual Studio cache / locks
+.vs/
+*.suo
+*.user
+*.userprefs
+*.pidb
+*.log
+
+# Build output
+[Dd]ebug/
+[Rr]elease/
+bin/
+obj/
+
+# iOS / Android artifacts
+*.ipa
+*.aab
+*.apk
+
+# macOS
+.DS_Store
