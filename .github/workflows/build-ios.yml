@@ -22,25 +22,39 @@ jobs:
       - name: Install MAUI workload
         run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
-      - name: Build iOS App Bundle
+      - name: Build iOS App Bundle (Unsigned)
         run: |
           CSPROJ=$(find . -name "*.csproj" -not -path "*/obj/*" -not -path "*/bin/*" | head -n 1)
           echo "Building project: $CSPROJ"
           
-          # 🔧 Собираем .app бандл (без IPA, без подписи)
-          dotnet publish "$CSPROJ" \
+          # 🔧 Собираем .app без проверки подписи
+          dotnet build "$CSPROJ" \
             -f net8.0-ios \
             -c Release \
+            -p:RuntimeIdentifier=ios-arm64 \
             -p:BuildIpa=false \
             -p:ArchiveOnBuild=false \
             -p:CodesignKey="" \
             -p:CodesignProvision="" \
+            -p:CodesignEntitlements="" \
             -p:TargetFrameworks=net8.0-ios \
-            -p:MauiVersion=8.0.100
+            -p:MauiVersion=8.0.100 \
+            -p:EnableCodeSigning=false \
+            -p:SkipCodesigning=true \
+            -p:ProvisioningProfile=""
 
+      - name: Find and Upload App Bundle
+        run: |
+          # 🔍 Находим .app папку
+          APP_PATH=$(find . -name "*.app" -not -path "*/obj/*" -not -path "*/bin/*" | head -n 1)
+          echo "Found app: $APP_PATH"
+          
+          # 🔧 Копируем в удобную папку для артефакта
+          mkdir -p output
+          cp -R "$APP_PATH" output/MyApp.app
+          
       - name: Upload App Bundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          # 🔧 Путь к .app папке (без подписи)
-          path: bin/Release/net8.0-ios/ios-arm64/publish/MyApp.app
+          path: output/MyApp.app
