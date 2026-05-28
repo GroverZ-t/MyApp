@@ -42,24 +42,28 @@ jobs:
             -p:SkipCodesigning=true \
             -p:ProvisioningProfile=""
 
-      - name: Debug Find app bundle
+      - name: Locate and Prepare App Bundle
         run: |
-          echo "=== Current directory ==="
-          pwd
+          echo "Searching for .app bundle in workspace..."
+          # Ищем папку .app в bin/
+          APP_DIR=$(find bin -type d -name "*.app" 2>/dev/null | head -n 1)
           
-          echo "=== Searching for .app files ==="
-          find . -name "*.app" -type d 2>/dev/null || echo "No .app found with find"
+          if [ -z "$APP_DIR" ]; then
+            echo "ERROR: .app bundle not found in bin/. Listing contents:"
+            find bin -type d 2>/dev/null | head -20
+            exit 1
+          fi
           
-          echo "=== Checking common output paths ==="
-          ls -la bin/Release/net8.0-ios/ 2>/dev/null || echo "Path not found: bin/Release/net8.0-ios/"
-          ls -la bin/Release/net8.0-ios/ios-arm64/ 2>/dev/null || echo "Path not found: ios-arm64"
-          ls -la bin/Release/net8.0-ios/ios-arm64/publish/ 2>/dev/null || echo "Path not found: publish"
+          echo "SUCCESS: Found app bundle at $APP_DIR"
           
-          echo "=== Full directory tree limited ==="
-          find bin -name "*.app" -type d 2>/dev/null | head -20
+          # Копируем в фиксированную папку для артефакта
+          mkdir -p output
+          cp -R "$APP_DIR" output/MyApp.app
+          echo "Copied to output/MyApp.app"
+          ls -la output/
 
       - name: Upload App Bundle artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-app-bundle
-          path: bin/**/*.app
+          path: output/MyApp.app
