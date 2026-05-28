@@ -9,31 +9,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 🔧 Фиксируем .NET 8.0.404 (стабильная версия, не 10.0.300!)
+      # 🔧 Устанавливаем .NET (global.json определит точную версию)
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.404'
+          dotnet-version: '8.0.x'
 
-      # 🔧 Задаём версию MAUI для CI
-      - name: Set MAUI version
-        run: echo "MauiVersion=8.0.100" >> $GITHUB_ENV
-
-      # 🔧 Выбираем стабильный Xcode
+      # 🔧 Выбираем совместимый Xcode
       - name: Select Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode_16.4.app
           echo "Selected Xcode:"
           xcodebuild -version
 
-      # 🔧 Устанавливаем MAUI workload для .NET 8
+      # 🔧 Устанавливаем MAUI workload
       - name: Install MAUI workload
         run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
+      # 🔧 Сборка iOS
       - name: Build iOS
         run: |
-          CSPROJ=$(find . -name "*.csproj" | head -n 1)
+          # Автоматически находим .csproj файл
+          CSPROJ=$(find . -name "*.csproj" -not -path "*/obj/*" -not -path "*/bin/*" | head -n 1)
           echo "Building project: $CSPROJ"
           
+          # Собираем только iOS
           dotnet publish "$CSPROJ" \
             -f net8.0-ios \
             -c Release \
@@ -44,6 +43,7 @@ jobs:
             -p:TargetFrameworks=net8.0-ios \
             -p:MauiVersion=8.0.100
 
+      # 🔧 Загружаем артефакт
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
