@@ -9,13 +9,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 🔍 ДИАГНОСТИКА: Покажем, какие файлы есть в папке
+      - name: Debug directory
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in root:"
+          ls -la
+          echo "Looking for csproj files:"
+          find . -name "*.csproj"
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
 
       - name: Build iOS
         run: |
-          dotnet publish *.csproj \
+          # Ищем файл .csproj и сохраняем его имя в переменную
+          CSPROJ=$(find . -name "*.csproj" | head -n 1)
+          echo "Building project: $CSPROJ"
+          
+          dotnet publish "$CSPROJ" \
             -f net9.0-ios \
             -c Release \
             -p:BuildIpa=true \
