@@ -42,38 +42,28 @@ jobs:
             -p:SkipCodesigning=true \
             -p:ProvisioningProfile=""
 
-      - name: Debug Full Search for Artifacts
+      - name: Copy App Bundle to Output
         run: |
-          echo "=== WORKSPACE ROOT ==="
-          pwd
+          # 🔍 Находим .app в bin/ (ищем директории, а не файлы!)
+          APP_DIR=$(find bin -type d -name "*.app" 2>/dev/null | head -n 1)
           
-          echo "=== Searching ENTIRE workspace for .app ==="
-          find . -type d -name "*.app" 2>/dev/null | head -20
+          if [ -z "$APP_DIR" ]; then
+            echo "ERROR: .app not found in bin/"
+            find bin -type d -name "*.app" 2>/dev/null
+            exit 1
+          fi
           
-          echo "=== Searching for .ipa ==="
-          find . -name "*.ipa" 2>/dev/null | head -10
+          echo "Found: $APP_DIR"
           
-          echo "=== Searching for .appbundle ==="
-          find . -name "*.appbundle" 2>/dev/null | head -10
+          # Копируем в фиксированную папку
+          mkdir -p output
+          cp -R "$APP_DIR" output/MyApp.app
           
-          echo "=== All files in bin/ (recursive, limited) ==="
-          find bin -type f 2>/dev/null | head -50
-          
-          echo "=== All files in obj/ (recursive, limited) ==="
-          find obj -type f 2>/dev/null | head -50
-          
-          echo "=== Directory structure near output ==="
-          ls -laR bin/Release/net8.0-ios/ 2>/dev/null | head -100 || echo "Path bin/Release/net8.0-ios/ not found"
+          echo "Copied. Contents:"
+          ls -la output/MyApp.app/ | head -20
 
-      - name: Try Upload Any App-Like Artifact
+      - name: Upload App Bundle artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ios-build-output
-          # 🔍 Пробуем загрузить всё, что может быть полезным
-          path: |
-            **/*.app
-            **/*.appbundle
-            **/*.ipa
-            bin/Release/**/publish/**
-            obj/Release/**/ios-arm64/**
-          if-no-files-found: warn
+          name: ios-app-bundle
+          path: output/MyApp.app
