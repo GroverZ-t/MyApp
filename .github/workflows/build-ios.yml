@@ -9,18 +9,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # 🔧 Используем .NET 8 (совместим с Xcode 16.x/26.x)
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '8.0.x'
 
-      # 🔧 Выбираем Xcode 26.3 (максимальная доступная версия)
+      # 🔧 Выбираем Xcode 16.4 (стабильная версия)
       - name: Select Xcode
         run: |
-          sudo xcode-select -s /Applications/Xcode_26.3.app
+          sudo xcode-select -s /Applications/Xcode_16.4.app
           echo "Selected Xcode:"
           xcodebuild -version
 
-      # 🔧 Устанавливаем MAUI workload
+      # 🔧 Устанавливаем MAUI workload для .NET 8
       - name: Install MAUI workload
         run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
@@ -30,18 +31,16 @@ jobs:
           echo "Building project: $CSPROJ"
           
           dotnet publish "$CSPROJ" \
-            -f net9.0-ios \
+            -f net8.0-ios \
             -c Release \
             -p:BuildIpa=true \
             -p:ArchiveOnBuild=false \
             -p:CodesignKey="" \
             -p:CodesignProvision="" \
-            -p:TargetFrameworks=net9.0-ios \
-            -p:IPhoneSdkVersion=26.3 \
-            -p:_DotNetInstallDir=/Users/runner/.dotnet
+            -p:TargetFrameworks=net8.0-ios
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: ios-app
-          path: bin/Release/net9.0-ios/ios-arm64/publish/*.ipa
+          path: bin/Release/net8.0-ios/ios-arm64/publish/*.ipa
