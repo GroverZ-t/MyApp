@@ -9,7 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 🔧 Используем .NET 8 (совместим с Xcode 16.x/26.x)
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
