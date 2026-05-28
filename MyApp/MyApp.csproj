@@ -35,6 +35,7 @@
     <CodesignProvision></CodesignProvision>
     <ArchiveOnBuild>false</ArchiveOnBuild>
     <CodesignEntitlements></CodesignEntitlements>
+    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
   </PropertyGroup>
 
   <!-- 🔹 Ресурсы -->
