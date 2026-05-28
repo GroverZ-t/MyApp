@@ -15,7 +15,7 @@ jobs:
 
       - name: Build iOS
         run: |
-          dotnet publish MyApp.csproj \
+          dotnet publish *.csproj \
             -f net9.0-ios \
             -c Release \
             -p:BuildIpa=true \
